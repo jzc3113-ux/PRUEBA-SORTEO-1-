@@ -43,7 +43,7 @@
         <main>
             <div class="bg-white rounded-xl shadow-lg p-6 mb-8">
                 <h2 class="text-xl font-semibold text-gray-700 mb-4">Importar participantes</h2>
-                <div id="drop-area" class="file-drop-area p-6 text-center cursor-pointer mb-4">
+                <div id="dropArea" class="file-drop-area p-6 text-center cursor-pointer mb-4">
                     <input type="file" id="fileInput" class="hidden" accept=".xlsx,.xls,.csv" />
                     <div class="icon mb-3">
                         <img src="https://storage.googleapis.com/workspace-0f70711f-8b4e-4d94-86f1-2a93ccde5887/image/e7422a8d-1f51-4f3d-a2e1-9e6fd2f6c760.png" alt="Ícono de subida de archivos con flecha hacia arriba y documento digital" class="mx-auto h-16 opacity-70" />
@@ -200,28 +200,63 @@
             const file = e.dataTransfer.files[0];
             if (file) {
                 handleFileSelection(file);
+            } else {
+                const errorMsg = 'No se ha seleccionado ningún archivo';
+                document.getElementById('fileError').textContent = errorMsg;
+                document.getElementById('fileError').classList.remove('hidden');
+                console.error(errorMsg);
+                alert(errorMsg);
             }
         });
 
-        fileInput.addEventListener('change', () => handleFileSelection(fileInput.files[0]));
+        fileInput.addEventListener('change', () => {
+            if (fileInput.files.length === 0) {
+                const errorMsg = 'No se ha seleccionado ningún archivo';
+                document.getElementById('fileError').textContent = errorMsg;
+                document.getElementById('fileError').classList.remove('hidden');
+                console.error(errorMsg);
+                alert(errorMsg);
+                return;
+            }
+            handleFileSelection(fileInput.files[0]);
+        });
 
         function handleFileSelection(file) {
-            if (!file) return;
+            const fileError = document.getElementById('fileError');
+
+            if (!file) {
+                const errorMsg = 'No se ha seleccionado ningún archivo';
+                fileError.textContent = errorMsg;
+                fileError.classList.remove('hidden');
+                console.error(errorMsg);
+                alert(errorMsg);
+                return;
+            }
+
+            // Clear previous errors
+            fileError.textContent = '';
+            fileError.classList.add('hidden');
 
             // Validate file size (max 10MB)
             if (file.size > 10 * 1024 * 1024) {
                 const errorMsg = 'Error: El archivo excede el tamaño máximo de 10MB';
-                document.getElementById('fileError').textContent = errorMsg;
-                document.getElementById('fileError').classList.remove('hidden');
+                fileError.textContent = errorMsg;
+                fileError.classList.remove('hidden');
+                console.error(errorMsg);
+                alert(errorMsg);
                 return;
             }
 
             // Validate file extension
             const validExtensions = ['.xlsx', '.xls', '.csv'];
             const fileExt = file.name.substring(file.name.lastIndexOf('.')).toLowerCase();
-            
+
             if (!validExtensions.includes(fileExt)) {
-                alert('Formato de archivo no válido. Por favor suba un archivo Excel (.xlsx, .xls) o CSV');
+                const errorMsg = 'Formato de archivo no válido. Por favor suba un archivo Excel (.xlsx, .xls) o CSV';
+                fileError.textContent = errorMsg;
+                fileError.classList.remove('hidden');
+                console.error(errorMsg);
+                alert(errorMsg);
                 return;
             }
 

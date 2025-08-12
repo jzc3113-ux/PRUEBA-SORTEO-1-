@@ -1,0 +1,366 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Sorteo ONG - Selección de Ganadores</title>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <style>
+        .file-drop-area {
+            border: 2px dashed #4a5568;
+            border-radius: 0.5rem;
+            transition: all 0.3s ease;
+        }
+        .file-drop-area:hover {
+            border-color: #3182ce;
+            background-color: rgba(49, 130, 206, 0.1);
+        }
+        .file-drop-area.active {
+            border-color: #3182ce;
+            background-color: rgba(49, 130, 206, 0.2);
+        }
+        .winner-animation {
+            animation: pulse 2s infinite;
+        }
+        @keyframes pulse {
+            0% { transform: scale(1); box-shadow: 0 0 0 0 rgba(74, 222, 128, 0.7); }
+            70% { transform: scale(1.05); box-shadow: 0 0 0 10px rgba(74, 222, 128, 0); }
+            100% { transform: scale(1); box-shadow: 0 0 0 0 rgba(74, 222, 128, 0); }
+        }
+    </style>
+</head>
+<body class="bg-gray-50 min-h-screen">
+    <div class="container mx-auto px-4 py-8 max-w-4xl">
+        <header class="text-center mb-12">
+            <div class="logo-container mb-6">
+                <img src="https://storage.googleapis.com/workspace-0f70711f-8b4e-4d94-86f1-2a93ccde5887/image/8429898c-d413-4da8-a321-ae53d1c4d25b.png" alt="Logo oficial de nuestra organización" class="mx-auto h-24" />
+            </div>
+            <h1 class="text-3xl font-bold text-gray-800 mb-2">Sorteos Solidarios</h1>
+            <p class="text-gray-600">Sistema de sorteos transparentes para nuestra comunidad</p>
+        </header>
+
+        <main>
+            <div class="bg-white rounded-xl shadow-lg p-6 mb-8">
+                <h2 class="text-xl font-semibold text-gray-700 mb-4">Importar participantes</h2>
+                <div id="drop-area" class="file-drop-area p-6 text-center cursor-pointer mb-4">
+                    <input type="file" id="fileInput" class="hidden" accept=".xlsx,.xls,.csv" />
+                    <div class="icon mb-3">
+                        <img src="https://storage.googleapis.com/workspace-0f70711f-8b4e-4d94-86f1-2a93ccde5887/image/e7422a8d-1f51-4f3d-a2e1-9e6fd2f6c760.png" alt="Ícono de subida de archivos con flecha hacia arriba y documento digital" class="mx-auto h-16 opacity-70" />
+                    </div>
+                    <p class="text-gray-600 mb-1">Sube tu lista de participantes en formato Excel</p>
+                    <p class="text-sm text-gray-500">Primera fila debe ser los títulos de columna</p>
+                </div>
+                
+                <div class="grid grid-cols-1 md:grid-cols-2 gap-4 mb-4">
+                    <div>
+                        <label for="nameColumn" class="block text-sm font-medium text-gray-700 mb-1">Columna de nombres</label>
+                        <select id="nameColumn" class="w-full border border-gray-300 rounded-md p-2">
+                            <option value="">Selecciona columna...</option>
+                        </select>
+                    </div>
+                    <div>
+                        <label for="emailColumn" class="block text-sm font-medium text-gray-700 mb-1">Columna de email (opcional)</label>
+                        <select id="emailColumn" class="w-full border border-gray-300 rounded-md p-2">
+                            <option value="">Selecciona columna...</option>
+                        </select>
+                    </div>
+                </div>
+
+                <div class="flex justify-end">
+                    <button id="importBtn" class="bg-blue-600 hover:bg-blue-700 text-white font-medium py-2 px-6 rounded-md disabled:opacity-50" disabled>
+                        Importar participantes
+                    </button>
+                </div>
+            </div>
+
+            <div class="bg-white rounded-xl shadow-lg p-6 mb-8" id="participantsSection" style="display: none;">
+                <div class="flex justify-between items-center mb-4">
+                    <h2 class="text-xl font-semibold text-gray-700">Participantes</h2>
+                    <div class="text-sm text-gray-500">
+                        <span id="participantCount">0</span> registrados
+                    </div>
+                </div>
+                
+                <div class="overflow-x-auto">
+                    <table class="min-w-full divide-y divide-gray-200">
+                        <thead class="bg-gray-50">
+                            <tr>
+                                <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">#</th>
+                                <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Nombre</th>
+                                <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Email</th>
+                            </tr>
+                        </thead>
+                        <tbody id="participantsTable" class="bg-white divide-y divide-gray-200">
+                            <!-- Aquí se cargarán los participantes -->
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+
+            <div class="bg-white rounded-xl shadow-lg p-6" id="raffleSection" style="display: none;">
+                <h2 class="text-xl font-semibold text-gray-700 mb-4">Seleccionar ganador</h2>
+                
+                <div class="flex flex-col md:flex-row gap-4 mb-6">
+                    <div class="w-full">
+                        <label for="prizeName" class="block text-sm font-medium text-gray-700 mb-1">Premio</label>
+                        <input type="text" id="prizeName" placeholder="Ej: Canasta familiar, Certificado de descuento, etc" class="w-full border border-gray-300 rounded-md p-2">
+                    </div>
+                    <div class="w-full">
+                        <label for="winnerCount" class="block text-sm font-medium text-gray-700 mb-1">Número de ganadores</label>
+                        <select id="winnerCount" class="w-full border border-gray-300 rounded-md p-2">
+                            <option value="1">1 ganador</option>
+                            <option value="2">2 ganadores</option>
+                            <option value="3">3 ganadores</option>
+                            <option value="5">5 ganadores</option>
+                            <option value="10">10 ganadores</option>
+                        </select>
+                    </div>
+                </div>
+
+                <div class="flex justify-center mb-6">
+                    <button id="drawBtn" class="bg-green-600 hover:bg-green-700 text-white font-medium py-3 px-8 rounded-full shadow-lg transform transition hover:scale-105">
+                        Seleccionar ganador(es)
+                    </button>
+                </div>
+
+                <div id="winnerContainer" class="space-y-4" style="display: none;">
+                    <div class="bg-gradient-to-r from-green-50 to-blue-50 border-l-4 border-green-500 p-4 rounded-md">
+                        <h3 class="font-semibold text-gray-800 mb-2">Premio:</h3>
+                        <p id="displayPrize" class="text-gray-600"></p>
+                    </div>
+
+                    <div id="winnerDisplay" class="winner-animation bg-white p-6 rounded-lg shadow-md text-center">
+                        <h3 class="text-lg font-semibold text-gray-800 mb-4">¡Ganador(es)!</h3>
+                        <div id="winnerList" class="space-y-2 text-gray-700">
+                            <!-- Aquí se mostrarán los ganadores -->
+                        </div>
+                    </div>
+
+                    <div class="flex justify-center mt-4">
+                        <button id="newDrawBtn" class="bg-blue-600 hover:bg-blue-700 text-white font-medium py-2 px-6 rounded-md">
+                            Realizar nuevo sorteo
+                        </button>
+                    </div>
+                </div>
+            </div>
+        </main>
+
+        <footer class="mt-12 text-center text-sm text-gray-500">
+            <p>Sistema de Sorteos Solidarios © 2024. [Nombre de tu ONG]</p>
+        </footer>
+    </div>
+
+    <script>
+        // Variables globales
+        let participants = [];
+        let workbook = null;
+        let selectedFileName = '';
+        let winners = [];
+
+        // Elementos del DOM
+        const fileInput = document.getElementById('fileInput');
+        const dropArea = document.getElementById('dropArea');
+        const importBtn = document.getElementById('importBtn');
+        const nameColumnSelect = document.getElementById('nameColumn');
+        const emailColumnSelect = document.getElementById('emailColumn');
+        const participantsSection = document.getElementById('participantsSection');
+        const raffleSection = document.getElementById('raffleSection');
+        const participantsTable = document.getElementById('participantsTable');
+        const participantCount = document.getElementById('participantCount');
+        const drawBtn = document.getElementById('drawBtn');
+        const winnerContainer = document.getElementById('winnerContainer');
+        const winnerList = document.getElementById('winnerList');
+        const displayPrize = document.getElementById('displayPrize');
+        const newDrawBtn = document.getElementById('newDrawBtn');
+        const prizeNameInput = document.getElementById('prizeName');
+        const winnerCountSelect = document.getElementById('winnerCount');
+
+        // Eventos para el área de arrastrar y soltar
+        dropArea.addEventListener('click', () => fileInput.click());
+        dropArea.addEventListener('dragover', (e) => {
+            e.preventDefault();
+            dropArea.classList.add('active');
+        });
+        dropArea.addEventListener('dragleave', () => {
+            dropArea.classList.remove('active');
+        });
+        dropArea.addEventListener('drop', (e) => {
+            e.preventDefault();
+            dropArea.classList.remove('active');
+            if (e.dataTransfer.files.length) {
+                fileInput.files = e.dataTransfer.files;
+                handleFileSelection();
+            }
+        });
+
+        fileInput.addEventListener('change', handleFileSelection);
+
+        function handleFileSelection() {
+            const file = fileInput.files[0];
+            if (!file) return;
+
+            selectedFileName = file.name;
+            
+            // Mostrar nombre del archivo seleccionado
+            const dropText = dropArea.querySelector('p:first-of-type');
+            dropText.textContent = `Archivo seleccionado: ${file.name}`;
+            dropArea.classList.add('bg-blue-50');
+
+            // Leer el archivo Excel
+            const reader = new FileReader();
+            reader.onload = function(e) {
+                const data = new Uint8Array(e.target.result);
+                workbook = XLSX.read(data, { type: 'array' });
+                
+                // Obtener la primera hoja
+                const firstSheet = workbook.Sheets[workbook.SheetNames[0]];
+                const jsonData = XLSX.utils.sheet_to_json(firstSheet, { header: 1 });
+                
+                // Limpiar selects de columnas
+                nameColumnSelect.innerHTML = '<option value="">Selecciona columna...</option>';
+                emailColumnSelect.innerHTML = '<option value="">Selecciona columna...</option>';
+                
+                // Llenar selects con las columnas disponibles (primera fila se asume como encabezados)
+                if (jsonData.length > 0) {
+                    const headers = jsonData[0];
+                    headers.forEach((header, index) => {
+                        if (header) {
+                            nameColumnSelect.innerHTML += `<option value="${index}">${header}</option>`;
+                            emailColumnSelect.innerHTML += `<option value="${index}">${header}</option>`;
+                        }
+                    });
+                }
+                
+                // Habilitar botón de importar
+                importBtn.disabled = false;
+            };
+            reader.readAsArrayBuffer(file);
+        }
+
+        // Evento para importar participantes
+        importBtn.addEventListener('click', importParticipants);
+
+        function importParticipants() {
+            const nameColIndex = parseInt(nameColumnSelect.value);
+            
+            if (isNaN(nameColIndex)) {
+                alert('Por favor selecciona la columna que contiene los nombres');
+                return;
+            }
+            
+            const emailColIndex = emailColumnSelect.value ? parseInt(emailColumnSelect.value) : null;
+            
+            // Obtener la primera hoja
+            const firstSheet = workbook.Sheets[workbook.SheetNames[0]];
+            const jsonData = XLSX.utils.sheet_to_json(firstSheet, { header: 1 });
+            
+            // Limpiar array de participantes
+            participants = [];
+            
+            // Procesar filas (empezando desde la fila 1 para saltar encabezados si existen)
+            for (let i = 1; i < jsonData.length; i++) {
+                const row = jsonData[i];
+                if (row && row[nameColIndex]) {
+                    const participant = {
+                        name: row[nameColIndex],
+                        email: emailColIndex !== null ? (row[emailColIndex] || '') : '',
+                        id: i
+                    };
+                    participants.push(participant);
+                }
+            }
+            
+            // Mostrar participantes en la tabla
+            displayParticipants();
+            
+            // Mostrar secciones relevantes
+            participantsSection.style.display = 'block';
+            raffleSection.style.display = 'block';
+            
+            // Actualizar contador
+            participantCount.textContent = participants.length;
+        }
+
+        function displayParticipants() {
+            participantsTable.innerHTML = '';
+            
+            if (participants.length === 0) {
+                participantsTable.innerHTML = '<tr><td colspan="3" class="text-center py-4 text-gray-500">No hay participantes cargados</td></tr>';
+                return;
+            }
+            
+            participants.forEach((participant, index) => {
+                const row = document.createElement('tr');
+                row.className = index % 2 === 0 ? 'bg-white' : 'bg-gray-50';
+                row.innerHTML = `
+                    <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500">${index + 1}</td>
+                    <td class="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-900">${participant.name}</td>
+                    <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500">${participant.email || 'N/A'}</td>
+                `;
+                participantsTable.appendChild(row);
+            });
+        }
+
+        // Evento para seleccionar ganador
+        drawBtn.addEventListener('click', selectWinner);
+
+        function selectWinner() {
+            const prize = prizeNameInput.value.trim();
+            const winnerCount = parseInt(winnerCountSelect.value);
+            
+            if (!prize) {
+                alert('Por favor ingresa el nombre del premio');
+                return;
+            }
+            
+            if (participants.length === 0) {
+                alert('No hay participantes cargados');
+                return;
+            }
+            
+            if (winnerCount > participants.length) {
+                alert(`No hay suficientes participantes (${participants.length}) para seleccionar ${winnerCount} ganadores`);
+                return;
+            }
+            
+            // Seleccionar ganadores aleatorios sin repetición
+            winners = [];
+            const participantsCopy = [...participants];
+            
+            for (let i = 0; i < winnerCount; i++) {
+                const randomIndex = Math.floor(Math.random() * participantsCopy.length);
+                winners.push(participantsCopy[randomIndex]);
+                participantsCopy.splice(randomIndex, 1);
+            }
+            
+            // Mostrar ganadores
+            displayPrize.textContent = prize;
+            winnerList.innerHTML = '';
+            
+            winners.forEach((winner, index) => {
+                const winnerElement = document.createElement('div');
+                winnerElement.className = 'text-lg';
+                if (winner.email) {
+                    winnerElement.innerHTML = `<strong>${index + 1}.</strong> ${winner.name} &lt;${winner.email}&gt;`;
+                } else {
+                    winnerElement.innerHTML = `<strong>${index + 1}.</strong> ${winner.name}`;
+                }
+                winnerList.appendChild(winnerElement);
+            });
+            
+            // Mostrar contenedor de ganadores
+            winnerContainer.style.display = 'block';
+            
+            // Desplazarse hasta los ganadores
+            winnerContainer.scrollIntoView({ behavior: 'smooth' });
+        }
+
+        // Evento para nuevo sorteo
+        newDrawBtn.addEventListener('click', () => {
+            winnerContainer.style.display = 'none';
+            prizeNameInput.focus();
+        });
+    </script>
+</body>
+</html>

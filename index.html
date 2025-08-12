@@ -48,12 +48,11 @@
                     <div class="icon mb-3">
                         <img src="https://storage.googleapis.com/workspace-0f70711f-8b4e-4d94-86f1-2a93ccde5887/image/e7422a8d-1f51-4f3d-a2e1-9e6fd2f6c760.png" alt="Ícono de subida de archivos con flecha hacia arriba y documento digital" class="mx-auto h-16 opacity-70" />
                     </div>
-                    <p class="text-gray-600 mb-1">Haz clic para seleccionar o arrastra tu archivo Excel</p>
-                    <p class="text-sm text-gray-500">
-                        Instrucciones:<br>
-                        1. Archivo Excel (.xlsx, .xls) o CSV<br>
-                        2. Primera fila deben ser los encabezados<br>
-                        3. Tamaño máximo: 10MB
+                    <p class="text-gray-600 mb-1">Sube tu lista de participantes en formato Excel</p>
+                    <p class="text-sm text-gray-500">Formato requerido:
+                        <span class="block">- Archivos .xlsx, .xls o .csv</span>
+                        <span class="block">- Primera fila como encabezados de columna</span>
+                        <span class="block">- Tamaño máximo 10MB</span>
                     </p>
                 </div>
                 
@@ -77,6 +76,7 @@
                         Importar participantes
                     </button>
                 </div>
+                <div id="fileError" class="text-red-500 text-sm mt-2 hidden"></div>
             </div>
 
             <div class="bg-white rounded-xl shadow-lg p-6 mb-8" id="participantsSection" style="display: none;">
@@ -207,7 +207,9 @@
 
             // Validate file size (max 10MB)
             if (file.size > 10 * 1024 * 1024) {
-                alert('El archivo es demasiado grande. Tamaño máximo permitido: 10MB');
+                const errorMsg = 'Error: El archivo excede el tamaño máximo de 10MB';
+                document.getElementById('fileError').textContent = errorMsg;
+                document.getElementById('fileError').classList.remove('hidden');
                 return;
             }
 

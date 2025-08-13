@@ -6,43 +6,25 @@
     <title>Sorteo ONG - Selección de Ganadores</title>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
     <script src="https://cdn.tailwindcss.com"></script>
-    <style>
-        .file-drop-area {
-            border: 2px dashed #4a5568;
-            border-radius: 0.5rem;
-            transition: all 0.3s ease;
-        }
-        .file-drop-area:hover {
-            border-color: #3182ce;
-            background-color: rgba(49, 130, 206, 0.1);
-        }
-        .file-drop-area.active {
-            border-color: #3182ce;
-            background-color: rgba(49, 130, 206, 0.2);
-        }
-        .winner-animation {
-            animation: pulse 2s infinite;
-        }
-        @keyframes pulse {
-            0% { transform: scale(1); box-shadow: 0 0 0 0 rgba(74, 222, 128, 0.7); }
-            70% { transform: scale(1.05); box-shadow: 0 0 0 10px rgba(74, 222, 128, 0); }
-            100% { transform: scale(1); box-shadow: 0 0 0 0 rgba(74, 222, 128, 0); }
-        }
-    </style>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Atkinson+Hyperlegible:ital,wght@0,400;0,700;1,400;1,700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="stylesheet.css">
+    <link rel="stylesheet" href="styles.css">
 </head>
-<body class="bg-gray-50 min-h-screen">
+<body class="min-h-screen">
     <div class="container mx-auto px-4 py-8 max-w-4xl">
         <header class="text-center mb-12">
             <div class="logo-container mb-6">
-                <img src="https://storage.googleapis.com/workspace-0f70711f-8b4e-4d94-86f1-2a93ccde5887/image/8429898c-d413-4da8-a321-ae53d1c4d25b.png" alt="Logo oficial de nuestra organización" class="mx-auto h-24" />
+                <img src="logo.svg" alt="Logo crea +" class="mx-auto h-24" />
             </div>
-            <h1 class="text-3xl font-bold text-gray-800 mb-2">Sorteos Solidarios</h1>
+            <h1 class="text-3xl font-bold mb-2">Sorteos Solidarios</h1>
             <p class="text-gray-600">Sistema de sorteos transparentes para nuestra comunidad</p>
         </header>
 
         <main>
-            <div class="bg-white rounded-xl shadow-lg p-6 mb-8">
-                <h2 class="text-xl font-semibold text-gray-700 mb-4">Importar participantes</h2>
+            <div class="card p-6 mb-8">
+                <h2 class="text-xl font-semibold mb-4">Importar participantes</h2>
                 <div id="dropArea" class="file-drop-area p-6 text-center cursor-pointer mb-4">
                     <input type="file" id="fileInput" class="hidden" accept=".xlsx,.xls,.csv" />
                     <div class="icon mb-3">
@@ -72,20 +54,20 @@
                 </div>
 
                 <div class="flex justify-end">
-                    <button id="importBtn" class="bg-blue-600 hover:bg-blue-700 text-white font-medium py-2 px-6 rounded-md disabled:opacity-50" disabled>
+                    <button id="importBtn" class="btn-primary disabled:opacity-50" disabled>
                         Importar participantes
                     </button>
                 </div>
                 <div id="fileError" class="text-red-500 text-sm mt-2 hidden"></div>
                 <div id="debugSection" class="mt-4 hidden">
-                    <h3 class="text-sm font-medium text-gray-700 mb-2">Información del archivo</h3>
+                    <h3 class="text-sm font-medium mb-2">Información del archivo</h3>
                     <pre id="debugOutput" class="hidden bg-gray-100 p-2 rounded text-xs overflow-x-auto"></pre>
                 </div>
             </div>
 
-            <div class="bg-white rounded-xl shadow-lg p-6 mb-8" id="participantsSection" style="display: none;">
+            <div class="card p-6 mb-8" id="participantsSection" style="display: none;">
                 <div class="flex justify-between items-center mb-4">
-                    <h2 class="text-xl font-semibold text-gray-700">Participantes</h2>
+                    <h2 class="text-xl font-semibold">Participantes</h2>
                     <div class="text-sm text-gray-500">
                         <span id="participantCount">0</span> registrados
                     </div>
@@ -107,8 +89,8 @@
                 </div>
             </div>
 
-            <div class="bg-white rounded-xl shadow-lg p-6" id="raffleSection" style="display: none;">
-                <h2 class="text-xl font-semibold text-gray-700 mb-4">Seleccionar ganador</h2>
+            <div class="card p-6" id="raffleSection" style="display: none;">
+                <h2 class="text-xl font-semibold mb-4">Seleccionar ganador</h2>
                 
                 <div class="flex flex-col md:flex-row gap-4 mb-6">
                     <div class="w-full">
@@ -128,26 +110,26 @@
                 </div>
 
                 <div class="flex justify-center mb-6">
-                    <button id="drawBtn" class="bg-green-600 hover:bg-green-700 text-white font-medium py-3 px-8 rounded-full shadow-lg transform transition hover:scale-105">
+                    <button id="drawBtn" class="btn-primary py-3 px-8 rounded-full shadow-lg transform transition hover:scale-105">
                         Seleccionar ganador(es)
                     </button>
                 </div>
 
                 <div id="winnerContainer" class="space-y-4" style="display: none;">
                     <div class="bg-gradient-to-r from-green-50 to-blue-50 border-l-4 border-green-500 p-4 rounded-md">
-                        <h3 class="font-semibold text-gray-800 mb-2">Premio:</h3>
+                        <h3 class="font-semibold mb-2">Premio:</h3>
                         <p id="displayPrize" class="text-gray-600"></p>
                     </div>
 
-                    <div id="winnerDisplay" class="winner-animation bg-white p-6 rounded-lg shadow-md text-center">
-                        <h3 class="text-lg font-semibold text-gray-800 mb-4">¡Ganador(es)!</h3>
+                    <div id="winnerDisplay" class="winner-animation card p-6 text-center">
+                        <h3 class="text-lg font-semibold mb-4">¡Ganador(es)!</h3>
                         <div id="winnerList" class="space-y-2 text-gray-700">
                             <!-- Aquí se mostrarán los ganadores -->
                         </div>
                     </div>
 
                     <div class="flex justify-center mt-4">
-                        <button id="newDrawBtn" class="bg-blue-600 hover:bg-blue-700 text-white font-medium py-2 px-6 rounded-md">
+                        <button id="newDrawBtn" class="btn-primary">
                             Realizar nuevo sorteo
                         </button>
                     </div>

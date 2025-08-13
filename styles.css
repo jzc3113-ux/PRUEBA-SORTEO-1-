@@ -1,0 +1,61 @@
+:root{
+  --color-bg: #FFE667;
+  --color-brand: #0C00C0;
+  --color-white: #FFFFFF;
+}
+
+html, body{
+  background: var(--color-bg);
+  color: #111;
+  font-family: 'FF Nort Headline', 'Atkinson Hyperlegible', system-ui, -apple-system, Arial, sans-serif;
+}
+
+h1,h2,h3,.heading{
+  font-family: 'FF Nort Headline', 'Atkinson Hyperlegible', sans-serif;
+  color: var(--color-brand);
+}
+
+.brand-crea-plus{
+  font-family: 'Atkinson Hyperlegible', sans-serif;
+  font-weight: 700;
+  text-transform: lowercase;
+  color: var(--color-brand);
+}
+
+.btn-primary{
+  background: var(--color-brand);
+  color: var(--color-white);
+  border-radius: .625rem;
+  padding: .75rem 1.25rem;
+  font-weight: 700;
+}
+
+.card{
+  background: var(--color-white);
+  border: 1px solid rgba(0,0,0,.06);
+  border-radius: .75rem;
+  box-shadow: 0 8px 24px rgba(0,0,0,.06);
+}
+
+.file-drop-area{
+  border: 2px dashed #4a5568;
+  border-radius: 0.5rem;
+  transition: all 0.3s ease;
+}
+.file-drop-area:hover{
+  border-color: #3182ce;
+  background-color: rgba(49,130,206,0.1);
+}
+.file-drop-area.active{
+  border-color: #3182ce;
+  background-color: rgba(49,130,206,0.2);
+}
+
+.winner-animation{
+  animation: pulse 2s infinite;
+}
+@keyframes pulse{
+  0%{transform: scale(1); box-shadow: 0 0 0 0 rgba(74,222,128,0.7);}
+  70%{transform: scale(1.05); box-shadow: 0 0 0 10px rgba(74,222,128,0);}
+  100%{transform: scale(1); box-shadow: 0 0 0 0 rgba(74,222,128,0);}
+}
